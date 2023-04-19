@@ -1,47 +1,61 @@
 /*
+
+El siguiente script fue desarrollado por los estudiantes de la clase: ITIZ-2201 - BASE DE DATOS II – 3180 - 202302
+El mismo será utilizado para diversos ejercicios planteados a lo largo de la materia
+Última versión: 18-04-2023 23:08
+
 ****************************************************************************************************
--- Verificaciones de la base de datos y tipos
+-- Verificacion de existencia de la base de datos y creacion de la misma
 ****************************************************************************************************
 */
--- Verificar si la base de datos EJERCICIODDL ya existe; si no existe, crearla
-IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='LabX')
+
+-- Usar master para creacion de base.
+USE Master
+GO
+
+-- Verificar si la base de datos LabX ya existe; si existe, eliminarla
+IF EXISTS(SELECT name FROM sys.databases WHERE name = 'LabX')
 BEGIN
-    CREATE DATABASE LabX
+    DROP DATABASE LabX;
 END
-GO
 
-/*
--- opcional???
---falta un if exists para verificar si la base de datos existe
-SELECT *
-FROM
-    SYS.systypes --Desvincular una rule y tipo de dato
-    sp_unbindrule 'cedula',
-    'cedula_rule' DROP RULE cedula_rule
-GO
-*/
+CREATE DATABASE LabX;
 
 /*
 ****************************************************************************************************
--- Inicio del script de creacion
+-- Verificacion de existencia de reglas y tipos; creacion de las mismas
 ****************************************************************************************************
 */
 
--- Usar la base de datos EJERCICIODDL
+-- Usar la base de datos LabX
 USE LabX
 GO
 
--- Crear tipo de dato para correo electrónico
+-- Validar si existe el tipo de dato correo y crear tipo de dato para correo electrónico
+IF EXISTS(SELECT name FROM sys.systypes WHERE name = 'correo')
+BEGIN
+    DROP TYPE correo;
+END
+
 CREATE TYPE correo FROM varchar(320) NOT NULL 
 GO
 
--- Crear tipo de dato para cédula
-CREATE TYPE cedula FROM char(10) NOT NULL
+-- Validar si existe el tipo de dato cedulaIdentidad y crear tipo de dato para cedulaIdentidad
+IF EXISTS(SELECT name FROM sys.systypes WHERE name = 'cedulaIdentidad')
+BEGIN
+    DROP TYPE cedulaIdentidad;
+END
+
+CREATE TYPE cedulaIdentidad FROM char(10) NOT NULL
 GO
 
---Script para crear la regla de la cedula
---Crear regla de para el tipo cedula
-CREATE RULE cedula_rule AS @value LIKE '[2][0-4][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
+--  Validar si existe la regla "cedulaIdentidad_rule" y crear la regla
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'R' AND name = 'cedulaIdentidad_rule')
+BEGIN
+    DROP RULE cedulaIdentidad_rule;
+END
+
+CREATE RULE cedulaIdentidad_rule AS @value LIKE '[2][0-4][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
     OR @value LIKE '[1][0-9][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
     OR @value LIKE '[0][1-9][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
     OR @value LIKE '[3][0][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
@@ -53,11 +67,17 @@ CREATE RULE cedula_rule AS @value LIKE '[2][0-4][0-5][0-9][0-9][0-9][0-9][0-9][0
         ) % 10
     )
 GO
-EXEC sp_bindrule 'cedula_rule', 'cedula';
+
+-- Asociar tipo de dato "cedulaIdentidad" con regla "cedulaIdentidad_rule"
+EXEC sp_bindrule 'cedulaIdentidad_rule', 'cedulaIdentidad';
 GO
 
--- Script para crear la regla para el email
--- Crear regla de para el tipo mail
+--  Validar si existe la regla "cedulaIdentidad_rule" y crear la regla
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'R' AND name = 'correo_rule')
+BEGIN
+    DROP RULE correo_rule;
+END
+
 CREATE RULE correo_rule
 AS
     @Correo LIKE '%@%' AND
@@ -73,74 +93,85 @@ AS
     SUBSTRING(@Correo, CHARINDEX('@', @Correo)+1, LEN(@Correo)-CHARINDEX('@', @Correo)) LIKE '%.[a-zA-Z][a-zA-Z][a-zA-Z]' OR -- VALIDA QUE LA EXTENSION DEL DOMINIO TENGA 4 CARACTERES
     SUBSTRING(@Correo, CHARINDEX('@', @Correo)+1, LEN(@Correo)-CHARINDEX('@', @Correo)) LIKE '%.[a-zA-Z][a-zA-Z]' -- VALIDA QUE LA EXTENSION DEL DOMINIO TENGA 3 CARACTERES 
 GO
+
+-- Asociar tipo de dato "correo" con regla "correo_rule"
 EXEC sp_bindrule 'correo_rule', 'correo';
 GO
 
 /*
-****************************************************************************************************
---Script para la creacion de tablas
-****************************************************************************************************
+*******************************************************************************************************************************************************************
+-- Creacion de tablas de la base de datos, no se eliminan las tablas una por una, ya que la validacion de su existencia esta realizada a nivel de la base de datos
+*******************************************************************************************************************************************************************
 */
 
---Script para la creacion de tabla Paciente
+-- Creacion de tabla Paciente
 CREATE TABLE Paciente (
-idPaciente SMALLINT IDENTITY(1,1) NOT NULL,
-    cedula cedula NOT NULL UNIQUE,
-    nombre varchar(55) NOT NULL,
-    apellido varchar(55) NOT NULL,
-    -- genero char(1) NOT NULL DEFAULT '-', --opcional?
-    correo correo NOT NULL UNIQUE,
-    telefono char(10),
-    fechaNacimiento DATETIME NOT NULL,
-    tipoSangre varchar(3) NOT NULL,
-    usuarioRegistro nvarchar(128) NOT NULL DEFAULT SYSTEM_USER, -- HOST_NAME(),
+    idUsuario SMALLINT IDENTITY(1,1) NOT NULL,
+
+    cedula cedulaIdentidad NOT NULL UNIQUE,
+    nombre NVARCHAR(55) NOT NULL,
+    apellido NVARCHAR(55) NOT NULL,
+    mail correo NOT NULL UNIQUE,
+    telefono VARCHAR(15),
+    fechaNacimiento DATE NOT NULL,
+    tipoSangre VARCHAR(3) NOT NULL,
+    usuarioRegistro NVARCHAR(128) NOT NULL DEFAULT SYSTEM_USER,
     fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
 
-    CONSTRAINT PK_Paciente PRIMARY KEY (idPaciente),
+    CONSTRAINT PK_Paciente PRIMARY KEY (idUsuario),
     CONSTRAINT CH_TipoSangre CHECK (tipoSangre IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
-    -- CONSTRAINT CH_Genero CHECK (genero IN ('H', 'M', '-')), -- Definir restricción de género, opcional?
-    CONSTRAINT CH_FechaNacimiento CHECK (fechaNacimiento < GETDATE())
+    CONSTRAINT CH_Nombre CHECK (PATINDEX('%[0-9]%', nombre) = 0),
+    CONSTRAINT CH_Apellido CHECK (PATINDEX('%[0-9]%', apellido) = 0),
+    CONSTRAINT CH_Apellido CHECK (PATINDEX('%[a-z]%', telefono) = 0),
+    CONSTRAINT CH_FechaNacimiento CHECK (fechaNacimiento <= GETDATE())
 )
 GO
 
---Script para la creacion de tabla Examen
+-- Creacion de tabla Examen
 CREATE TABLE Examen (
     idExamen SMALLINT IDENTITY(1,1) NOT NULL, -- INT???
 
     nombre VARCHAR(50) UNIQUE NOT NULL,
-    minimoNormal FLOAT NOT NULL,
-    maximoNormal FLOAT NOT NULL,
+    minimoNormal FLOAT NOT NULL, --revisar
+    maximoNormal FLOAT NOT NULL, --revisar
     ayuno BIT NOT NULL,
     diasResultado TINYINT NOT NULL,
     usuarioRegistro nvarchar(128) NOT NULL DEFAULT SYSTEM_USER, -- HOST_NAME(),
     fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT PK_Examen PRIMARY KEY (idExamen),
-    CONSTRAINT CH_DiasResultado CHECK (diasResultado IN (0,1,2,3))
+    CONSTRAINT CH_DiasResultado CHECK (diasResultado IN (0,1,2,3)),
+    CONSTRAINT CH_MinimoNormal CHECK (minimoNormal < maximoNormal)
 )
 GO
 
---Script para borrar tabla Examen
+-- Creacion de tabla Resultado
 CREATE TABLE Resultado (
-    idResultado SMALLINT IDENTITY(1,1), 
+    idResultado SMALLINT IDENTITY(1,1) NOT NULL, 
 
     idExamen SMALLINT NOT NULL,
-    idPaciente SMALLINT NOT NULL,
+    idUsuario SMALLINT NOT NULL,
 
-    fechaPedido DATE NOT NULL DEFAULT GETDATE(),
-    fechaExamen DATE NOT NULL,
-    fechaEntrega DATE NOT NULL,
+    fechaPedido DATETIME NOT NULL DEFAULT GETDATE(),
+    fechaExamen DATETIME NOT NULL,
+    fechaEntrega DATETIME NOT NULL,
     resultado NUMERIC(10,2) NOT NULL,
     fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
     usuarioRegistro nvarchar(128) NOT NULL DEFAULT SYSTEM_USER, -- HOST_NAME(),
 
     CONSTRAINT PK_Resultado PRIMARY KEY (idResultado),
     CONSTRAINT FK_Examen FOREIGN KEY (idExamen) REFERENCES Examen(idExamen),
-    CONSTRAINT FK_Paciente FOREIGN KEY (idPaciente) REFERENCES Paciente(idPaciente),
+    CONSTRAINT FK_Paciente FOREIGN KEY (idUsuario) REFERENCES Paciente(idUsuario),
     CONSTRAINT CH_FechaEntrega CHECK (fechaEntrega >= fechaExamen),
     CONSTRAINT CH_fechaExamen CHECK(fechaExamen >= fechaPedido)
 )
 GO
+
+/*
+****************************************************************************************************
+-- Insercion de datos en tablas
+****************************************************************************************************
+*/
 
 /*
 ****************************************************************************************************
