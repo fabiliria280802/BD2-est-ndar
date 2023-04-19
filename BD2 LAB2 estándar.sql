@@ -122,21 +122,50 @@ CREATE TABLE Paciente (
     CONSTRAINT CH_TipoSangre CHECK (tipoSangre IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
     CONSTRAINT CH_Nombre CHECK (PATINDEX('%[0-9]%', nombre) = 0),
     CONSTRAINT CH_Apellido CHECK (PATINDEX('%[0-9]%', apellido) = 0),
-    CONSTRAINT CH_Apellido CHECK (PATINDEX('%[a-z]%', telefono) = 0),
+    CONSTRAINT CH_Telefono CHECK (PATINDEX('%[^+0-9 ()-]%', telephone) = 0)
     CONSTRAINT CH_FechaNacimiento CHECK (fechaNacimiento <= GETDATE())
 )
 GO
 
+-- Trigger que impide ingreso directo de un usuario del sistema
+CREATE TRIGGER tr_UsuarioRegistro_Paciente
+ON Paciente 
+FOR INSERT, UPDATE
+AS
+BEGIN
+  IF (SELECT COUNT(usuarioRegistro) FROM inserted) <> 0 
+  BEGIN
+    RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+GO
+
+-- Trigger que impide ingreso directo de la fecha del registro de un paciente
+CREATE TRIGGER tr_FechaRegistro_Paciente
+ON Paciente 
+FOR INSERT, UPDATE
+AS
+BEGIN
+  IF (SELECT COUNT(fechaRegistro) FROM inserted) <> 0 
+  BEGIN
+    RAISERROR ('No puede ingresar fechas de registro directamente', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+GO
+
+
 -- Creacion de tabla Examen
 CREATE TABLE Examen (
-    idExamen SMALLINT IDENTITY(1,1) NOT NULL, -- INT???
+    idExamen INT IDENTITY(1,1) NOT NULL,
 
-    nombre VARCHAR(50) UNIQUE NOT NULL,
-    minimoNormal FLOAT NOT NULL, --revisar
-    maximoNormal FLOAT NOT NULL, --revisar
+    nombre VARCHAR(64) UNIQUE NOT NULL,
+    minimoNormal DECIMAL(7, 3) NOT NULL,
+    maximoNormal DECIMAL(7, 3) NOT NULL,
     ayuno BIT NOT NULL,
     diasResultado TINYINT NOT NULL,
-    usuarioRegistro nvarchar(128) NOT NULL DEFAULT SYSTEM_USER, -- HOST_NAME(),
+    usuarioRegistro NVARCHAR(128) NOT NULL DEFAULT SYSTEM_USER,
     fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
 
     CONSTRAINT PK_Examen PRIMARY KEY (idExamen),
@@ -145,26 +174,84 @@ CREATE TABLE Examen (
 )
 GO
 
+-- Trigger que impide ingreso directo de un usuario del sistema
+CREATE TRIGGER tr_UsuarioRegistro_Examen
+ON Examen 
+FOR INSERT, UPDATE
+AS
+BEGIN
+  IF (SELECT COUNT(usuarioRegistro) FROM inserted) <> 0 
+  BEGIN
+    RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+GO
+
+-- Trigger que impide ingreso directo de la fecha del registro de un examen
+CREATE TRIGGER tr_FechaRegistro_Examen
+ON Examen 
+FOR INSERT, UPDATE
+AS
+BEGIN
+  IF (SELECT COUNT(fechaRegistro) FROM inserted) <> 0 
+  BEGIN
+    RAISERROR ('No puede ingresar fechas de registro directamente', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+GO
+
 -- Creacion de tabla Resultado
 CREATE TABLE Resultado (
-    idResultado SMALLINT IDENTITY(1,1) NOT NULL, 
+    idResultado INT IDENTITY(1,1) NOT NULL, 
 
-    idExamen SMALLINT NOT NULL,
+    idExamen INT NOT NULL,
     idUsuario SMALLINT NOT NULL,
 
-    fechaPedido DATETIME NOT NULL DEFAULT GETDATE(),
+    fechaPedido DATETIME NOT NULL,
     fechaExamen DATETIME NOT NULL,
     fechaEntrega DATETIME NOT NULL,
-    resultado NUMERIC(10,2) NOT NULL,
+
+    resultado DECIMAL(7, 3) NOT NULL,
     fechaRegistro DATETIME NOT NULL DEFAULT GETDATE(),
-    usuarioRegistro nvarchar(128) NOT NULL DEFAULT SYSTEM_USER, -- HOST_NAME(),
+    usuarioRegistro NVARCHAR(128) NOT NULL DEFAULT SYSTEM_USER,
 
     CONSTRAINT PK_Resultado PRIMARY KEY (idResultado),
     CONSTRAINT FK_Examen FOREIGN KEY (idExamen) REFERENCES Examen(idExamen),
     CONSTRAINT FK_Paciente FOREIGN KEY (idUsuario) REFERENCES Paciente(idUsuario),
+
     CONSTRAINT CH_FechaEntrega CHECK (fechaEntrega >= fechaExamen),
     CONSTRAINT CH_fechaExamen CHECK(fechaExamen >= fechaPedido)
 )
+GO
+
+-- Trigger que impide ingreso directo de un usuario del sistema
+CREATE TRIGGER tr_UsuarioRegistro_Resultado
+ON Resultado 
+FOR INSERT, UPDATE
+AS
+BEGIN
+  IF (SELECT COUNT(usuarioRegistro) FROM inserted) <> 0 
+  BEGIN
+    RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+GO
+
+-- Trigger que impide ingreso directo de la fecha del registro de un Resultado
+CREATE TRIGGER tr_FechaRegistro_Resultado
+ON Resultado 
+FOR INSERT, UPDATE
+AS
+BEGIN
+  IF (SELECT COUNT(fechaRegistro) FROM inserted) <> 0 
+  BEGIN
+    RAISERROR ('No puede ingresar fechas de registro directamente', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
 GO
 
 /*
