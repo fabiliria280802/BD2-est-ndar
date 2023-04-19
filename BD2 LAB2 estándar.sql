@@ -116,7 +116,7 @@ CREATE TABLE Paciente (
     nombre NVARCHAR(55) NOT NULL,
     apellido NVARCHAR(55) NOT NULL,
     mail correo NOT NULL UNIQUE,
-    telefono VARCHAR(15),
+    telefono VARCHAR(16),
     fechaNacimiento DATE NOT NULL,
     tipoSangre VARCHAR(3) NOT NULL,
     usuarioRegistro NVARCHAR(128) NOT NULL DEFAULT SYSTEM_USER,
@@ -137,11 +137,19 @@ ON Paciente
 FOR INSERT, UPDATE
 AS
 BEGIN
-  IF (SELECT COUNT(usuarioRegistro) FROM inserted) <> 0 
-  BEGIN
-    RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
-    ROLLBACK TRANSACTION
-  END
+    IF (SELECT COUNT(*) FROM inserted) > 1
+    BEGIN
+        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+        IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
+            BEGIN
+            RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+            ROLLBACK TRANSACTION
+            END
+    END
 END
 GO
 
@@ -151,11 +159,19 @@ ON Paciente
 FOR INSERT, UPDATE
 AS
 BEGIN
-  IF (SELECT COUNT(fechaRegistro) FROM inserted) <> 0 
-  BEGIN
-    RAISERROR ('No puede ingresar fechas de registro directamente', 16, 1)
-    ROLLBACK TRANSACTION
-  END
+    IF (SELECT COUNT(*) FROM inserted) > 1
+    BEGIN
+        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+        IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
+            BEGIN
+            RAISERROR ('No puede ingresar fecha directamente', 16, 1)
+            ROLLBACK TRANSACTION
+            END
+    END
 END
 GO
 
@@ -184,11 +200,19 @@ ON Examen
 FOR INSERT, UPDATE
 AS
 BEGIN
-  IF (SELECT COUNT(usuarioRegistro) FROM inserted) <> 0 
-  BEGIN
-    RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
-    ROLLBACK TRANSACTION
-  END
+    IF (SELECT COUNT(*) FROM inserted) > 1
+    BEGIN
+        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+        IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
+            BEGIN
+            RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+            ROLLBACK TRANSACTION
+            END
+    END
 END
 GO
 
@@ -198,11 +222,19 @@ ON Examen
 FOR INSERT, UPDATE
 AS
 BEGIN
-  IF (SELECT COUNT(fechaRegistro) FROM inserted) <> 0 
-  BEGIN
-    RAISERROR ('No puede ingresar fechas de registro directamente', 16, 1)
-    ROLLBACK TRANSACTION
-  END
+    IF (SELECT COUNT(*) FROM inserted) > 1
+    BEGIN
+        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+        IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
+            BEGIN
+            RAISERROR ('No puede ingresar fecha directamente', 16, 1)
+            ROLLBACK TRANSACTION
+            END
+    END
 END
 GO
 
@@ -236,11 +268,19 @@ ON Resultado
 FOR INSERT, UPDATE
 AS
 BEGIN
-  IF (SELECT COUNT(usuarioRegistro) FROM inserted) <> 0 
-  BEGIN
-    RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
-    ROLLBACK TRANSACTION
-  END
+    IF (SELECT COUNT(*) FROM inserted) > 1
+    BEGIN
+        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+        IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
+            BEGIN
+            RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+            ROLLBACK TRANSACTION
+            END
+    END
 END
 GO
 
@@ -250,10 +290,59 @@ ON Resultado
 FOR INSERT, UPDATE
 AS
 BEGIN
-  IF (SELECT COUNT(fechaRegistro) FROM inserted) <> 0 
-  BEGIN
-    RAISERROR ('No puede ingresar fechas de registro directamente', 16, 1)
-    ROLLBACK TRANSACTION
-  END
+    IF (SELECT COUNT(*) FROM inserted) > 1
+    BEGIN
+        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+        ROLLBACK TRANSACTION
+    END
+    ELSE
+    BEGIN
+        IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
+            BEGIN
+            RAISERROR ('No puede ingresar fecha directamente', 16, 1)
+            ROLLBACK TRANSACTION
+            END
+    END
 END
 GO
+
+/*
+****************************************************************************************************
+-- Insercion de datos en tablas de la base de datos
+****************************************************************************************************
+*/
+-- Ingreso de datos en la tabla Paciente
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('1102508772', 'Juan', 'Pérez', 'juanperezelgrande@hotmail.com', '09912367228', '1980-05-25', 'O+')
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('0912390649', 'María', 'González', 'mariag_gonzalez@gmail.com', '+593 0994586775', '1995-12-08', 'B-')
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('0703521160', 'Pedro', 'Ramírez', 'ppramirez@udla.edu.ec', '02 2448337', '1974-02-14', 'AB+')
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('0801567892', 'Ana', 'García', 'anagarcia1234@uide.edu.ec', '0995672889', '1988-08-01', 'A-')
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('0502479531', 'Luis', 'Martínez', 'luismartinez18@epn.edu.ec', '+1 212-555-0123', '1965-11-03', 'B+')
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('1204870963', 'Sara', 'López', 'saralopez@usfq.edu.ec', '+58 212-555-0123', '2000-07-20', 'A+')
+GO
+
+-- Ingreso de datos en la tabla Examen
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Examen de glucosa', 70.000, 99.999, 1, 1)
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Perfil Lipídico', 100.000, 199.999, 1, 3)
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Examen de orina', 0.000, 10.000, 0, 2)
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Hemograma completo', 3.500, 11.000, 1, 2)
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Examen de tiroides', 0.400, 4.000, 1, 3)
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Examen de creatinina', 0.700, 1.400, 1, 1)
+GO
+
+/*
+****************************************************************************************************
+-- Validaciones de creacion de tablas y tipos
+****************************************************************************************************
+*/
+
+/*
+****************************************************************************************************
+-- Validaciones de insercion de datos
+****************************************************************************************************
+*/
+
+/*
+****************************************************************************************************
+-- Validaciones extras
+****************************************************************************************************
+*/
