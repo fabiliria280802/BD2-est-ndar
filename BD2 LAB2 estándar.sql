@@ -5,12 +5,12 @@ El mismo será utilizado para diversos ejercicios planteados a lo largo de la ma
 Fecha de creacion: 18-04-2023 21:00
 Última versión: 19-04-2023 00:46
 
-****************************************************************************************************
+**********************************
 -- Verificacion de existencia de la base de datos y creacion de la misma
-****************************************************************************************************
+**********************************
 */
 
--- Usar master para creacion de base.
+-- Usar master para creación de base.
 USE Master
 GO
 
@@ -24,9 +24,9 @@ CREATE DATABASE LabX;
 GO
 
 /*
-****************************************************************************************************
+**********************************
 -- Verificacion de existencia de reglas y tipos; creacion de las mismas
-****************************************************************************************************
+**********************************
 */
 
 -- Usar la base de datos LabX
@@ -58,6 +58,7 @@ BEGIN
 END
 GO
 
+-- Creación de la regla que valide que el tipo de dato cedulaIdentidad siga los parámetros de una cédula de identidad Ecuatoriana
 CREATE RULE cedulaIdentidad_rule AS @value LIKE '[2][0-4][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
     OR @value LIKE '[1][0-9][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
     OR @value LIKE '[0][1-9][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
@@ -82,6 +83,7 @@ BEGIN
 END
 GO
 
+-- Creación de la regla que valide que el tipo de dato correo siga los parámetros requeridos por un email.
 CREATE RULE correo_rule
 AS
     @Correo LIKE '%@%' AND
@@ -103,9 +105,9 @@ EXEC sp_bindrule 'correo_rule', 'correo';
 GO
 
 /*
-*******************************************************************************************************************************************************************
+*******************************************************
 -- Creacion de tablas de la base de datos, no se eliminan las tablas una por una, ya que la validacion de su existencia esta realizada a nivel de la base de datos
-*******************************************************************************************************************************************************************
+*******************************************************
 */
 
 -- Creacion de tabla Paciente
@@ -131,52 +133,64 @@ CREATE TABLE Paciente (
 )
 GO
 
+--Verificar si existe el Trigger
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'TR' AND name = 'tr_UsuarioRegistro_Paciente')
+BEGIN
+    DROP TRIGGER tr_UsuarioRegistro_Paciente
+END
+GO
 -- Trigger que impide ingreso directo de un usuario del sistema
 CREATE TRIGGER tr_UsuarioRegistro_Paciente
 ON Paciente 
 FOR INSERT, UPDATE
 AS
 BEGIN
-    IF (SELECT COUNT(*) FROM inserted) > 1
-    BEGIN
-        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
-        ROLLBACK TRANSACTION
-    END
-    ELSE
-    BEGIN
-        IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
-            BEGIN
-            RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
-            ROLLBACK TRANSACTION
-            END
-    END
+	IF (SELECT COUNT(*) FROM inserted) > 1
+	BEGIN
+		RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+		ROLLBACK TRANSACTION
+	END
+	ELSE
+	BEGIN
+		IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
+		  BEGIN
+			RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+			ROLLBACK TRANSACTION
+		  END
+	END
 END
 GO
 
+--Verificar si existe el Trigger
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'TR' AND name = 'tr_FechaRegistro_Paciente')
+BEGIN
+    DROP TRIGGER tr_FechaRegistro_Paciente
+END
+GO
 -- Trigger que impide ingreso directo de la fecha del registro de un paciente
 CREATE TRIGGER tr_FechaRegistro_Paciente
 ON Paciente 
 FOR INSERT, UPDATE
 AS
 BEGIN
-    IF (SELECT COUNT(*) FROM inserted) > 1
-    BEGIN
-        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
-        ROLLBACK TRANSACTION
-    END
-    ELSE
-    BEGIN
-        IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
-            BEGIN
-            RAISERROR ('No puede ingresar fecha directamente', 16, 1)
-            ROLLBACK TRANSACTION
-            END
-    END
+	IF (SELECT COUNT(*) FROM inserted) > 1
+	BEGIN
+		RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+		ROLLBACK TRANSACTION
+	END
+	ELSE
+	BEGIN
+		IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
+		  BEGIN
+			RAISERROR ('No puede ingresar fecha directamente', 16, 1)
+			ROLLBACK TRANSACTION
+		  END
+	END
 END
 GO
 
 
--- Creacion de tabla Examen
+-- Creación de tabla Examen
 CREATE TABLE Examen (
     idExamen INT IDENTITY(1,1) NOT NULL,
 
@@ -194,51 +208,63 @@ CREATE TABLE Examen (
 )
 GO
 
+--Verificar si existe el Trigger
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'TR' AND name = 'tr_UsuarioRegistro_Examen')
+BEGIN
+    DROP TRIGGER tr_UsuarioRegistro_Examen
+END
+GO
 -- Trigger que impide ingreso directo de un usuario del sistema
 CREATE TRIGGER tr_UsuarioRegistro_Examen
 ON Examen 
 FOR INSERT, UPDATE
 AS
 BEGIN
-    IF (SELECT COUNT(*) FROM inserted) > 1
-    BEGIN
-        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
-        ROLLBACK TRANSACTION
-    END
-    ELSE
-    BEGIN
-        IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
-            BEGIN
-            RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
-            ROLLBACK TRANSACTION
-            END
-    END
+	IF (SELECT COUNT(*) FROM inserted) > 1
+	BEGIN
+		RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+		ROLLBACK TRANSACTION
+	END
+	ELSE
+	BEGIN
+		IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
+		  BEGIN
+			RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+			ROLLBACK TRANSACTION
+		  END
+	END
 END
 GO
 
+--Verificar si existe el Trigger
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'TR' AND name = 'tr_FechaRegistro_Examen')
+BEGIN
+    DROP TRIGGER tr_FechaRegistro_Examen
+END
+GO
 -- Trigger que impide ingreso directo de la fecha del registro de un examen
 CREATE TRIGGER tr_FechaRegistro_Examen
 ON Examen 
 FOR INSERT, UPDATE
 AS
 BEGIN
-    IF (SELECT COUNT(*) FROM inserted) > 1
-    BEGIN
-        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
-        ROLLBACK TRANSACTION
-    END
-    ELSE
-    BEGIN
-        IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
-            BEGIN
-            RAISERROR ('No puede ingresar fecha directamente', 16, 1)
-            ROLLBACK TRANSACTION
-            END
-    END
+	IF (SELECT COUNT(*) FROM inserted) > 1
+	BEGIN
+		RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+		ROLLBACK TRANSACTION
+	END
+	ELSE
+	BEGIN
+		IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
+		  BEGIN
+			RAISERROR ('No puede ingresar fecha directamente', 16, 1)
+			ROLLBACK TRANSACTION
+		  END
+	END
 END
 GO
 
--- Creacion de tabla Resultado
+-- Creación de tabla Resultado
 CREATE TABLE Resultado (
     idResultado INT IDENTITY(1,1) NOT NULL, 
 
@@ -262,54 +288,115 @@ CREATE TABLE Resultado (
 )
 GO
 
+--Verificar si existe el Trigger
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'TR' AND name = 'tr_UsuarioRegistro_Resultado')
+BEGIN
+    DROP TRIGGER tr_UsuarioRegistro_Resultado
+END
+GO
 -- Trigger que impide ingreso directo de un usuario del sistema
 CREATE TRIGGER tr_UsuarioRegistro_Resultado
 ON Resultado 
 FOR INSERT, UPDATE
 AS
 BEGIN
-    IF (SELECT COUNT(*) FROM inserted) > 1
-    BEGIN
-        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
-        ROLLBACK TRANSACTION
-    END
-    ELSE
-    BEGIN
-        IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
-            BEGIN
-            RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
-            ROLLBACK TRANSACTION
-            END
-    END
+	IF (SELECT COUNT(*) FROM inserted) > 1
+	BEGIN
+		RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+		ROLLBACK TRANSACTION
+	END
+	ELSE
+	BEGIN
+		IF (SELECT usuarioRegistro FROM inserted) <> SYSTEM_USER
+		  BEGIN
+			RAISERROR ('No puede ingresar usuarios directamente', 16, 1)
+			ROLLBACK TRANSACTION
+		  END
+	END
 END
 GO
 
+--Verificar si existe el Trigger
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'TR' AND name = 'tr_FechaRegistro_Resultado')
+BEGIN
+    DROP TRIGGER tr_FechaRegistro_Resultado
+END
+GO
 -- Trigger que impide ingreso directo de la fecha del registro de un Resultado
 CREATE TRIGGER tr_FechaRegistro_Resultado
 ON Resultado 
 FOR INSERT, UPDATE
 AS
 BEGIN
-    IF (SELECT COUNT(*) FROM inserted) > 1
-    BEGIN
-        RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
-        ROLLBACK TRANSACTION
-    END
-    ELSE
-    BEGIN
-        IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
-            BEGIN
-            RAISERROR ('No puede ingresar fecha directamente', 16, 1)
-            ROLLBACK TRANSACTION
-            END
-    END
+	IF (SELECT COUNT(*) FROM inserted) > 1
+	BEGIN
+		RAISERROR('No se puede ingresar multiples valores al mismo tiempo',16,10)
+		ROLLBACK TRANSACTION
+	END
+	ELSE
+	BEGIN
+		IF DATEDIFF(second, (SELECT fechaRegistro FROM inserted), GETDATE()) >= 5
+		  BEGIN
+			RAISERROR ('No puede ingresar fecha directamente', 16, 1)
+			ROLLBACK TRANSACTION
+		  END
+	END
 END
 GO
-
 /*
-****************************************************************************************************
--- Insercion de datos en tablas de la base de datos
-****************************************************************************************************
+**********************************
+-- Procedimiento almacenado que controla el ingreso de tuplas en la tabla Resultado
+**********************************
+*/
+
+--Verificar si existe el Procedimiento Almacenado
+IF EXISTS(SELECT name FROM sys.objects WHERE type = 'P' AND name = 'ingresoResultado')
+BEGIN
+    DROP PROCEDURE ingresoResultado
+END
+GO
+--Creación de un Procedimiento Almacenado que permita ingresar un registro a la tabla Resultado, 
+--a través de la cédula del paciente, y el nombre del examen. 
+CREATE PROCEDURE ingresoResultado
+	--Se declaran los argumentos que recibe el procedimiento almacenado
+	@nombreExamen VARCHAR(64),
+    @ciPaciente cedulaIdentidad,
+    @fechaPedido DATETIME,
+    @fechaExamen DATETIME,
+    @fechaEntrega DATETIME,
+    @resultado DECIMAL(7, 3)
+AS
+	--Se verifica si existe el examen que se está intentando ingresar.
+	IF (SELECT COUNT(*) FROM Examen WHERE nombre = @nombreExamen) = 0
+	BEGIN
+		RAISERROR('El nombre del examen no existe',16,10)
+	END
+	ELSE
+	BEGIN
+		--Se verifica si existe un paciente con esa cédula que se está intentando ingresar. 
+		IF (SELECT COUNT(*) FROM Paciente WHERE cedula = @ciPaciente) = 0
+		BEGIN
+			RAISERROR('La cédula ingresada no existe',16,10)
+		END
+		ELSE
+		BEGIN
+			--Si el examen y la cédula existen, se obtiene el id del paciente y el id del examen. 
+			DECLARE @idPaciente SMALLINT
+			DECLARE @idExamen INT
+
+			SET @idPaciente = (SELECT idUsuario FROM Paciente WHERE cedula = @ciPaciente);
+			SET @idExamen = (SELECT idExamen FROM Examen WHERE nombre = @nombreExamen);
+			
+			--Se realiza la inserción de la tupla en la tabla Resultado.
+			INSERT INTO Resultado(idExamen,idUsuario,fechaPedido,fechaExamen, fechaEntrega, resultado) 
+			VALUES(@idExamen,@idPaciente,@fechaPedido,@fechaExamen,@fechaEntrega,@resultado)
+		END
+	END
+GO
+/*
+**********************************
+-- Inserción de datos en tablas de la base de datos
+**********************************
 */
 -- Ingreso de datos en la tabla Paciente
 INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES ('1102508772', 'Juan', 'Pérez', 'juanperezelgrande@hotmail.com', '09912367228', '1980-05-25', 'O+')
@@ -329,20 +416,6 @@ INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VA
 INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES ('Examen de creatinina', 0.700, 1.400, 1, 1)
 GO
 
-/*
-****************************************************************************************************
--- Validaciones de creacion de tablas y tipos
-****************************************************************************************************
-*/
-
-/*
-****************************************************************************************************
--- Validaciones de insercion de datos
-****************************************************************************************************
-*/
-
-/*
-****************************************************************************************************
--- Validaciones extras
-****************************************************************************************************
-*/
+--Ingreso de datos en la tabla Resultado
+EXECUTE ingresoResultado 'Examen de creatinina', '1102508772', '2023-04-19 10:00:00','2023-04-20 10:00:00','2023-04-21 10:00:00','15'
+GO
