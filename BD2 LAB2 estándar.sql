@@ -7,14 +7,14 @@ CREATE DATABASE LabX
 SELECT * FROM SYS.sysdatabases
 SELECT * FROM SYS.systypes
 
---Script para la creaci髇 de tipos de datos
+--Script para la creaci贸n de tipos de datos
 CREATE TYPE mail 
-FROM VARCHAR(100);
+FROM VARCHAR(320);
 CREATE TYPE cedula
 FROM VARCHAR(10);
 
 ------------------------------------------------------------------
---Script para crear la regla de la c閐ula
+--Script para crear la regla de la c茅dula
 --Crear regla de para el tipo cedula
 CREATE RULE cedula_rule AS
 @value LIKE '[2][0-4][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]' OR
@@ -33,7 +33,7 @@ AND CAST(SUBSTRING(@value, 10, 1) AS INT) =
           1 * CAST(SUBSTRING(@value, 8, 1) AS INT) +
           2 * CAST(SUBSTRING(@value, 9, 1) AS INT)) % 10);
 
---Verficar creaci髇 de la regla
+--Verficar creaci贸n de la regla
 SELECT * FROM SYS.sysobjects
 WHERE xtype = 'R'
 
@@ -57,9 +57,9 @@ DROP RULE cedula_rule;
 --Script para crear la regla para el email
 --Crear regla de para el tipo mail
 CREATE RULE mail_rule AS
-@value LIKE '%@%.%' AND @value NOT LIKE '%@%@%';
+@value LIKE '%_@_%.__%' AND @value NOT LIKE '%@%@%';
 
---Verficar creaci髇 de la regla
+--Verficar creaci贸n de la regla
 SELECT * FROM SYS.sysobjects
 WHERE xtype = 'R'
 
@@ -76,7 +76,7 @@ sp_bindrule mail_rule, 'mail'
 SELECT * FROM SYS.systypes
 -------------------------------------------------------------------
 
---Script para la creaci髇 de tabla Paciente
+--Script para la creaci贸n de tabla Paciente
 CREATE TABLE Paciente (
     idUsuario SMALLINT IDENTITY NOT NULL,
     cedula cedula NOT NULL,
@@ -99,7 +99,7 @@ DROP TABLE IF EXISTS Paciente
 --Script para ver los insert de la tabla Paciente
 SELECT * FROM  Paciente
 
---Script para la creaci髇 de tabla Examen
+--Script para la creaci贸n de tabla Examen
 CREATE TABLE Examen (
     idExamen SMALLINT IDENTITY NOT NULL,
     nombre VARCHAR(50) UNIQUE NOT NULL,
@@ -118,7 +118,7 @@ DROP TABLE IF EXISTS Examen
 --Script para ver los insert de la tabla Examen
 SELECT * FROM  Examen
 
---Script para la creaci髇 de tabla Resultado
+--Script para la creaci贸n de tabla Resultado
 CREATE TABLE Resultado (
     idResultado SMALLINT IDENTITY NOT NULL,
     idUsuario SMALLINT NOT NULL,
