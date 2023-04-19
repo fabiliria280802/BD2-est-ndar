@@ -1,8 +1,9 @@
 /*
-
 El siguiente script fue desarrollado por los estudiantes de la clase: ITIZ-2201 - BASE DE DATOS II – 3180 - 202302
 El mismo será utilizado para diversos ejercicios planteados a lo largo de la materia
-Última versión: 18-04-2023 23:08
+
+Fecha de creacion: 18-04-2023 21:00
+Última versión: 19-04-2023 00:46
 
 ****************************************************************************************************
 -- Verificacion de existencia de la base de datos y creacion de la misma
@@ -256,9 +257,28 @@ GO
 
 /*
 ****************************************************************************************************
--- Insercion de datos en tablas
+-- Insercion de datos en tablas de la base de datos
 ****************************************************************************************************
 */
+-- Ingreso de datos en la tabla Paciente
+INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES
+    ('1102508772', 'Juan', 'Pérez', 'juanperezelgrande@hotmail.com', '09912367228', '1980-05-25', 'O+'),
+    ('0912390649', 'María', 'González', 'mariag_gonzalez@gmail.com', '+593 0994586775', '1995-12-08', 'B-'),
+    ('0703521160', 'Pedro', 'Ramírez', 'ppramirez@udla.edu.ec', '02 2448337', '1974-02-14', 'AB+'),
+    ('0801567892', 'Ana', 'García', 'anagarcia1234@uide.edu.ec', '0995672889', '1988-08-01', 'A-'),
+    ('0502479531', 'Luis', 'Martínez', 'luismartinez18@epn.edu.ec', '+1 212-555-0123', '1965-11-03', 'B+'),
+    ('1204870963', 'Sara', 'López', 'saralopez@usfq.edu.ec', '+58 212-555-0123', '2000-07-20', 'A+')
+GO
+
+-- Ingreso de datos en la tabla Examen
+INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES
+    ('Examen de glucosa', 70.000, 99.999, 1, 1),
+    ('Perfil Lipídico', 100.000, 199.999, 1, 3),
+    ('Examen de orina', 0.000, 10.000, 0, 2),
+    ('Hemograma completo', 3.500, 11.000, 1, 2),
+    ('Examen de tiroides', 0.400, 4.000, 1, 3),
+    ('Examen de creatinina', 0.700, 1.400, 1, 1)
+GO
 
 /*
 ****************************************************************************************************
