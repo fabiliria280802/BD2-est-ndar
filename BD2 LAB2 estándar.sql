@@ -21,6 +21,7 @@ BEGIN
 END
 
 CREATE DATABASE LabX;
+GO
 
 /*
 ****************************************************************************************************
@@ -55,6 +56,7 @@ IF EXISTS(SELECT name FROM sys.objects WHERE type = 'R' AND name = 'cedulaIdenti
 BEGIN
     DROP RULE cedulaIdentidad_rule;
 END
+GO
 
 CREATE RULE cedulaIdentidad_rule AS @value LIKE '[2][0-4][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
     OR @value LIKE '[1][0-9][0-5][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'
@@ -78,6 +80,7 @@ IF EXISTS(SELECT name FROM sys.objects WHERE type = 'R' AND name = 'correo_rule'
 BEGIN
     DROP RULE correo_rule;
 END
+GO
 
 CREATE RULE correo_rule
 AS
@@ -123,7 +126,7 @@ CREATE TABLE Paciente (
     CONSTRAINT CH_TipoSangre CHECK (tipoSangre IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
     CONSTRAINT CH_Nombre CHECK (PATINDEX('%[0-9]%', nombre) = 0),
     CONSTRAINT CH_Apellido CHECK (PATINDEX('%[0-9]%', apellido) = 0),
-    CONSTRAINT CH_Telefono CHECK (PATINDEX('%[^+0-9 ()-]%', telephone) = 0)
+    CONSTRAINT CH_Telefono CHECK (PATINDEX('%[^+0-9 ()-]%', telefono) = 0),
     CONSTRAINT CH_FechaNacimiento CHECK (fechaNacimiento <= GETDATE())
 )
 GO
@@ -254,46 +257,3 @@ BEGIN
   END
 END
 GO
-
-/*
-****************************************************************************************************
--- Insercion de datos en tablas de la base de datos
-****************************************************************************************************
-*/
--- Ingreso de datos en la tabla Paciente
-INSERT INTO Paciente (cedula, nombre, apellido, mail, telefono, fechaNacimiento, tipoSangre) VALUES
-    ('1102508772', 'Juan', 'Pérez', 'juanperezelgrande@hotmail.com', '09912367228', '1980-05-25', 'O+'),
-    ('0912390649', 'María', 'González', 'mariag_gonzalez@gmail.com', '+593 0994586775', '1995-12-08', 'B-'),
-    ('0703521160', 'Pedro', 'Ramírez', 'ppramirez@udla.edu.ec', '02 2448337', '1974-02-14', 'AB+'),
-    ('0801567892', 'Ana', 'García', 'anagarcia1234@uide.edu.ec', '0995672889', '1988-08-01', 'A-'),
-    ('0502479531', 'Luis', 'Martínez', 'luismartinez18@epn.edu.ec', '+1 212-555-0123', '1965-11-03', 'B+'),
-    ('1204870963', 'Sara', 'López', 'saralopez@usfq.edu.ec', '+58 212-555-0123', '2000-07-20', 'A+')
-GO
-
--- Ingreso de datos en la tabla Examen
-INSERT INTO Examen (nombre, minimoNormal, maximoNormal, ayuno, diasResultado) VALUES
-    ('Examen de glucosa', 70.000, 99.999, 1, 1),
-    ('Perfil Lipídico', 100.000, 199.999, 1, 3),
-    ('Examen de orina', 0.000, 10.000, 0, 2),
-    ('Hemograma completo', 3.500, 11.000, 1, 2),
-    ('Examen de tiroides', 0.400, 4.000, 1, 3),
-    ('Examen de creatinina', 0.700, 1.400, 1, 1)
-GO
-
-/*
-****************************************************************************************************
--- Validaciones de creacion de tablas y tipos
-****************************************************************************************************
-*/
-
-/*
-****************************************************************************************************
--- Validaciones de insercion de datos
-****************************************************************************************************
-*/
-
-/*
-****************************************************************************************************
--- Validaciones extras
-****************************************************************************************************
-*/
