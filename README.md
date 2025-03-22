@@ -46,10 +46,6 @@ This project is a SQL script developed by ITIZ-2201 - DATABASE II students for v
 2. **Customize**:  
    Modify the sample data, validation rules, or table definitions as needed to fit your project's requirements.
 
-## License
-
-[Insert your license information here, e.g., MIT License.]
-
 ## Authors
 
 - ITIZ-2201 Students
